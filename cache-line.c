@@ -51,7 +51,7 @@ void array_step_traverse(int *array, l_int length, int step)
 
     float total_time = (sec * 1000000 + usec) / 1000.0;
 
-    printf("Array Length: %ld, Array size: %ld B, Step size: %d, Stride size: %d B, run time %.2f ms\n",
+    printf("Array Length: %ld, Array size: %ld B, Step size: %d, Stride size: %ld B, run time %.2f ms\n",
            length, length * (sizeof(int)), step, step * sizeof(int), total_time);
 }
 
