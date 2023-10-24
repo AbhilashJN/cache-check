@@ -20,7 +20,7 @@ float get_time_diff(struct timeval start, struct timeval end)
         sec = end.tv_sec - start.tv_sec;
     }
 
-    float total_time = (sec * 1000000 + usec) * 1000.0;
+    float total_time = (sec * 1000000 + usec) / 1000.0;
 
     return total_time;
 }
@@ -36,20 +36,10 @@ void array_step_traverse(int *array, l_int length, int step)
     {
         array[i] *= i;
     }
+
     gettimeofday(&tv2, NULL);
 
-    if (tv2.tv_usec < tv1.tv_usec)
-    {
-        usec = 1000000 + tv2.tv_usec - tv1.tv_usec;
-        sec = tv2.tv_sec - tv1.tv_sec - 1;
-    }
-    else
-    {
-        usec = tv2.tv_usec - tv1.tv_usec;
-        sec = tv2.tv_sec - tv1.tv_sec;
-    }
-
-    float total_time = (sec * 1000000 + usec) / 1000.0;
+    float total_time = get_time_diff(tv1, tv2);
 
     printf("Array Length: %ld, Array size: %ld B, Step size: %d, Stride size: %ld B, run time %.2f ms\n",
            length, length * (sizeof(int)), step, step * sizeof(int), total_time);
