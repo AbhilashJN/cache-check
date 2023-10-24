@@ -2,15 +2,32 @@
 #include <stdio.h>
 #include <sys/time.h>
 
-#define KB 1024
-#define MB 1024 * 1024
-
 typedef long int l_int;
 
 l_int gen_random_int(l_int max)
 {
     l_int rand_int = rand() % max;
     return rand_int + 1;
+}
+
+float get_time_diff(struct timeval start, struct timeval end)
+{
+    unsigned long sec, usec;
+
+    if (end.tv_usec < start.tv_usec)
+    {
+        usec = 1000000 + end.tv_usec - start.tv_usec;
+        sec = end.tv_sec - start.tv_sec - 1;
+    }
+    else
+    {
+        usec = end.tv_usec - start.tv_usec;
+        sec = end.tv_sec - start.tv_sec;
+    }
+
+    float total_time = (sec * 1000000 + usec) * 1000.0;
+
+    return total_time;
 }
 
 void shuffle_indices(l_int *indices, l_int length)
@@ -55,7 +72,6 @@ int **create_pointer_table(l_int length)
 void run_pointer_chase(int **table, l_int length, l_int iterations)
 {
     struct timeval tv1, tv2;
-    unsigned long sec, usec;
 
     gettimeofday(&tv1, NULL);
 
@@ -68,23 +84,12 @@ void run_pointer_chase(int **table, l_int length, l_int iterations)
 
     gettimeofday(&tv2, NULL);
 
-    int **touch = p;
+    int **dummy = p;
 
-    if (tv2.tv_usec < tv1.tv_usec)
-    {
-        usec = 1000000 + tv2.tv_usec - tv1.tv_usec;
-        sec = tv2.tv_sec - tv1.tv_sec - 1;
-    }
-    else
-    {
-        usec = tv2.tv_usec - tv1.tv_usec;
-        sec = tv2.tv_sec - tv1.tv_sec;
-    }
-
-    float total_time = (sec * 1000000 + usec) * 1000.0;
+    float total_time = get_time_diff(tv1, tv2);
     float avg_latency = total_time / iterations;
 
-    printf("Array Length: %ld, Buffer size: %ld B, latency %.2f ns\n",
+    printf("Array Length: %ld, Array size: %ld B, latency %.2f ns\n",
            length, length * (sizeof(int *)), avg_latency);
 }
 
@@ -92,14 +97,22 @@ int main(int argc, char *argv[])
 {
     if (argc < 2)
     {
-        printf("provide arg");
+        printf("\nUsage: cache-level <array_length>\n\n");
+        printf("   - array_length: anumber of elements in the array to be used for the test.\n");
         exit(-1);
     }
     int l = atoi(argv[1]);
+    if (l < 1)
+    {
+        printf("Invalid array length\n");
+        exit(-1);
+    }
 
     l_int length = l;
     l_int iterations = 1000000000;
+
     int **table = create_pointer_table(length);
     run_pointer_chase(table, length, iterations);
+
     return 0;
 }

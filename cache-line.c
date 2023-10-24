@@ -1,19 +1,28 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 #include <string.h>
-
-#include <time.h>
 #include <sys/time.h>
-#include <assert.h>
 
 typedef long int l_int;
 
-int *create_pointer_table(l_int length, l_int step)
+float get_time_diff(struct timeval start, struct timeval end)
 {
-    int *table = malloc(length * (sizeof(int)));
+    unsigned long sec, usec;
 
-    return table;
+    if (end.tv_usec < start.tv_usec)
+    {
+        usec = 1000000 + end.tv_usec - start.tv_usec;
+        sec = end.tv_sec - start.tv_sec - 1;
+    }
+    else
+    {
+        usec = end.tv_usec - start.tv_usec;
+        sec = end.tv_sec - start.tv_sec;
+    }
+
+    float total_time = (sec * 1000000 + usec) * 1000.0;
+
+    return total_time;
 }
 
 void array_step_traverse(int *array, l_int length, int step)
@@ -42,30 +51,42 @@ void array_step_traverse(int *array, l_int length, int step)
 
     float total_time = (sec * 1000000 + usec) / 1000.0;
 
-    printf("Array Length: %ld, Buffer size: %ld B, Step size: %d, Int size: %d, latency %.2f ms\n",
-           length, length * (sizeof(int)), step, sizeof(int), total_time);
+    printf("Array Length: %ld, Array size: %ld B, Step size: %d, Stride size: %d B, run time %.2f ms\n",
+           length, length * (sizeof(int)), step, step * sizeof(int), total_time);
 }
 
 int main(int argc, char *argv[])
 {
     if (argc < 3)
     {
-        printf("provide arg");
+        printf("\nUsage: cache-level <array_length> <step_size>\n\n");
+        printf("   - array_length: anumber of elements in the array to be used for the test.\n");
+        printf("   - step_size: the number of array elements to be used as step size.\n");
         exit(-1);
     }
+
     int l = atoi(argv[1]);
-    int s = atoi(argv[2]);
+    if (l < 1)
+    {
+        printf("Invalid array length\n");
+        exit(-1);
+    }
+
+    int step = atoi(argv[2]);
+    if (step < 1)
+    {
+        printf("Invalid step size\n");
+        exit(-1);
+    }
 
     l_int length = l;
-    int step = s;
-    l_int iterations = 100;
-    int *table = create_pointer_table(length, step);
-
+    int *table = malloc(length * (sizeof(int)));
     for (l_int i = 0; i < length; i++)
     {
         table[i] = 1;
     }
 
     array_step_traverse(table, length, step);
+
     return 0;
 }
