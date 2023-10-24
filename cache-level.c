@@ -81,8 +81,11 @@ void run_pointer_chase(int **table, l_int length, l_int iterations)
         sec = tv2.tv_sec - tv1.tv_sec;
     }
 
-    printf("Buffer size: %ld B, time %d.%06d s, latency %.2f ns\n",
-           length * (sizeof(int *)), sec, usec, (sec * 1000000 + usec) * 1000.0 / (iterations));
+    float total_time = (sec * 1000000 + usec) * 1000.0;
+    float avg_latency = total_time / iterations;
+
+    printf("Array Length: %ld, Buffer size: %ld B, latency %.2f ns\n",
+           length, length * (sizeof(int *)), avg_latency);
 }
 
 int main(int argc, char *argv[])
